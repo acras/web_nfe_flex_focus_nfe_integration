@@ -1,0 +1,26 @@
+development:
+  adapter: mysql
+  encoding: utf8
+  database: web_nfe_flex_development
+  username: root
+  password:
+  host: localhost
+  reconnect: true
+
+test:
+  adapter: mysql
+  encoding: utf8
+  database: web_nfe_flex_test
+  username: root
+  password:
+  host: localhost
+
+production:
+  adapter: mysql
+  encoding: utf8
+  database: web_nfe_flex_production
+  username: root
+  password:
+  host: localhost
+  reconnect: true
+

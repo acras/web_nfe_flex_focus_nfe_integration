@@ -1,0 +1,7 @@
+common:
+development:
+  web_nfe_flex_address: http://localhost:3000
+production:
+  web_nfe_flex_address: http://localhost:3002
+test:
+
