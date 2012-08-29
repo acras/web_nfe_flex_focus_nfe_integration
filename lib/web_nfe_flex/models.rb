@@ -107,6 +107,7 @@ module WebNfeFlexModels
 
       if self.emitente
         result[:cnpj_emitente] = self.emitente.cnpj
+        result[:uf_emitente] = self.emitente.uf
         result[:regime_tributario_emitente] = self.emitente.regime_tributario
       end
 
