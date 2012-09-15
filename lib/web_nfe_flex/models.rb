@@ -423,5 +423,80 @@ module WebNfeFlexModels
     end
   end
 
+  class Prestador < WebNfeFlexModel
+    set_table_name 'prestadores'
+  end
+
+  class CodigoServicoSaoPaulo < WebNfeFlexModel
+    set_table_name 'codigos_servico_sao_paulo'
+  end
+
+  class NotaFiscalServico < WebNfeFlexModel
+    set_table_name 'notas_fiscais_servico'
+    # single table inheritance nao funciona aqui :(
+    self.inheritance_column = 'non_existing_field'
+
+    belongs_to  :prestador,
+                :class_name => 'WebNfeFlexModels::Prestador',
+                :foreign_key => 'prestador_id'
+    belongs_to  :tomador,
+                :class_name => 'WebNfeFlexModels::Destinatario',
+                :foreign_key => 'tomador_id'
+    belongs_to  :codigo_servico_sao_paulo,
+                :class_name => 'WebNfeFlexModels::CodigoServicoSaoPaulo',
+                :foreign_key => 'codigo_servico_sao_paulo_id'
+  end
+
+  class NotaFiscalSaoPaulo < WebNfeFlexModel
+    set_table_name 'notas_fiscais_servico'
+    self.inheritance_column = 'non_existing_field'
+
+    belongs_to  :prestador,
+                :class_name => 'WebNfeFlexModels::Prestador',
+                :foreign_key => 'prestador_id'
+    belongs_to  :tomador,
+                :class_name => 'WebNfeFlexModels::Destinatario',
+                :foreign_key => 'tomador_id'
+    belongs_to  :codigo_servico_sao_paulo,
+                :class_name => 'WebNfeFlexModels::CodigoServicoSaoPaulo',
+                :foreign_key => 'codigo_servico_sao_paulo_id'
+
+    def values
+      result = {
+        :cnpj_prestador => prestador.cnpj,
+        :data_emissao => data_emissao.to_date,
+        :tributacao_rps => natureza_operacao,
+        :codigo_servico => codigo_servico_sao_paulo.codigo,
+        :aliquota_servicos => aliquota/100.0,
+        :iss_retido => sao_paulo_iss_retido ? 'true' : 'false',
+        :valor_deducoes => valor_deducoes || 0
+      }
+      [:discriminacao, :valor_servicos, :valor_pis, :valor_cofins, :valor_inss,
+        :valor_csll, :valor_ir].each do |f|
+        result[f] = send(f)
+      end
+      if tomador
+        result[:cpf_cnpj_tomador] = {}
+        if !tomador.cpf.blank?
+          result[:cpf_cnpj_tomador][:cpf] = tomador.cpf
+        else
+          result[:cpf_cnpj_tomador][:cnpj] = tomador.cnpj
+        end
+        result[:endereco_tomador] = {
+          :logradouro => tomador.logradouro,
+          :numero_endereco => tomador.numero,
+          :complemento_endereco => tomador.complemento,
+          :bairro => tomador.bairro,
+          :cidade => tomador.municipio.nil? ? nil : tomador.municipio.codigo_municipio,
+          :uf => tomador.municipio.nil? ? nil : tomador.municipio.sigla_uf,
+          :cep => tomador.cep
+        }
+        result[:email_tomador] = tomador.email unless tomador.email.blank?
+        result[:razao_social_tomador] = tomador.nome
+      end
+      result
+    end
+  end
+
 end
 

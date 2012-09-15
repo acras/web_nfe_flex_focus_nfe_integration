@@ -121,6 +121,68 @@ module NFe
         end
       end
 
+      def self.find_nota_fiscal_servico(cidade, nf_id)
+        if cidade == 'curitiba'
+          klass = WebNfeFlexModels::NotaFiscalServico
+        elsif cidade = 'sao_paulo'
+          klass = WebNfeFlexModels::NotaFiscalSaoPaulo
+        end
+        if nf = klass.find_by_id(nf_id.to_i)
+          nf.values
+        end
+      end
+
+      def self.notify_completion_nfse(nf_id, source_obj)
+        # busca nfse
+        nfse = WebNfeFlexModels::NotaFiscalServico.find_by_id(nf_id)
+        return unless nfse
+        # verifica resposta
+        response = source_obj.lote_rps.response_xml.document
+        rps = source_obj.lote_rps.rps.first
+        if response.sucesso == "false"
+          # adiciona mensagens de erro
+          msgs = []
+          response.alertas.each do |alerta|
+            msgs << alerta.codigo + ' - '+alerta.mensagem
+          end
+          response.erros.each do |erro|
+            msgs << erro.codigo + ' - '+erro.mensagem
+          end
+          nfse.status = 'erro_autorizacao'
+          nfse.mensagem_prefeitura = msgs.join("\n")
+          nfse.status_prefeitura = source_obj.lote_rps.situacao
+        else
+          # atualiza infos da nfse (status, url, valor iss)
+          nfse.status = 'autorizada'
+          nfse.status_prefeitura = source_obj.lote_rps.situacao
+          # mesmo autorizada pode haver alertas
+          msgs = []
+          response.alertas.each do |alerta|
+            msgs << alerta.codigo + ' - '+alerta.mensagem
+          end
+          nfse.mensagem_prefeitura = msgs.join("\n")
+          nfse.numero = rps.numero
+          nfse.numero_rps = rps.numero_rps
+          nfse.serie_rps = rps.serie_rps
+          # url
+          nfse.url = rps.uri
+          # codigo verificacao
+          nfse.codigo_verificacao = rps.codigo_verificacao
+        end
+        nfse.save
+        # avisa juggernaut
+        c = config
+        path = "#{c.web_nfe_flex_address}/notas_fiscais_servico/#{nf_id.to_i}/push"
+        url = URI.parse(path)
+        http = Net::HTTP::new(url.host, url.port)
+        if url.scheme == 'https'
+          http.use_ssl = true
+          http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        end
+        http.start do |x|
+          x.get(url.path)
+        end
+      end
     end
   end
 end
