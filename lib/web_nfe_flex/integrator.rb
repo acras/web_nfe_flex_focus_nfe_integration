@@ -122,6 +122,7 @@ module NFe
       end
 
       def self.find_nota_fiscal_servico(cidade, nf_id)
+        nf_id = nf_id.gsub("nfse:", "").to_i
         if cidade == 'curitiba'
           klass = WebNfeFlexModels::NotaFiscalServico
         elsif cidade = 'sao_paulo'
@@ -133,6 +134,7 @@ module NFe
       end
 
       def self.notify_completion_nfse(nf_id, source_obj)
+        nf_id = nf_id.gsub("nfse:", "").to_i
         # busca nfse
         nfse = WebNfeFlexModels::NotaFiscalServico.find_by_id(nf_id)
         return unless nfse
