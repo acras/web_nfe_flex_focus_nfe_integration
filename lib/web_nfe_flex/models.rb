@@ -468,7 +468,7 @@ module WebNfeFlexModels
         :tributacao_rps => natureza_operacao,
         :codigo_servico => codigo_servico_sao_paulo.codigo,
         :aliquota_servicos => aliquota/100.0,
-        :iss_retido => sao_paulo_iss_retido ? 'true' : 'false',
+        :iss_retido => sao_paulo_iss_retido ? 'S' : 'N',
         :valor_deducoes => valor_deducoes || 0
       }
       [:discriminacao, :valor_servicos, :valor_pis, :valor_cofins, :valor_inss,
