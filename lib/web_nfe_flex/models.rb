@@ -469,12 +469,14 @@ module WebNfeFlexModels
         :codigo_servico => codigo_servico_sao_paulo.codigo,
         :aliquota_servicos => aliquota/100.0,
         :iss_retido => sao_paulo_iss_retido ? 'S' : 'N',
-        :valor_deducoes => valor_deducoes || 0
+        :discriminacao => discriminacao
       }
-      [:discriminacao, :valor_servicos, :valor_pis, :valor_cofins, :valor_inss,
+      [:valor_deducoes, :valor_servicos, :valor_pis, :valor_cofins, :valor_inss,
         :valor_csll, :valor_ir].each do |f|
         result[f] = send(f)
+        result[f] = 0 if result[f] == 0.0 # senão não valida no xml
       end
+      result[:valor_deducoes] ||= 0 # campo obrigatório
       if tomador
         result[:cpf_cnpj_tomador] = {}
         if !tomador.cpf.blank?
