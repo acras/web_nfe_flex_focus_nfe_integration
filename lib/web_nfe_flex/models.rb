@@ -493,6 +493,8 @@ module WebNfeFlexModels
           :uf => tomador.municipio.nil? ? nil : tomador.municipio.sigla_uf,
           :cep => tomador.cep
         }
+        result[:inscricao_municipal_tomador] = tomador.inscricao_municipal unless tomador.inscricao_municipal.blank?
+        result[:inscricao_estadual_tomador] = tomador.inscricao_estadual unless tomador.inscricao_estadual.blank?
         result[:email_tomador] = tomador.email unless tomador.email.blank?
         result[:razao_social_tomador] = tomador.nome
       end
