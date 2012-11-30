@@ -141,7 +141,7 @@ module WebNfeFlexModels
           :justificativa_cancelamento, :domain_id, :transportador_id, :status, :tipo_venda,
           :valor_total_bruto, :municipio_entrega_id, :municipio_retirada_id, :veiculo_tipo,
           :devolucao_consignacao, :transporte_icms_municipio_id,
-          :transporte_icms_cfop_id].each { |x| result.delete(x) }
+          :transporte_icms_cfop_id, :modelo_nota_fiscal_id].each { |x| result.delete(x) }
 
       result
     end
@@ -183,7 +183,14 @@ module WebNfeFlexModels
 
       [:id, :type, :domain_id, :municipio_id, :pais_id, :isento_inscricao_estadual,
           :endereco_completo, :is_fornecedor, :is_cliente, :nome_extenso, :created_at,
-          :updated_at].each { |x| result.delete(x) }
+          :updated_at, :cnpj, :cnpj_emissao].each { |x| result.delete(x) }
+
+      # verifica se usa cnpj_emissao
+      if !cnpj_emissao.blank?
+        result[:cnpj] = cnpj_emissao
+      else
+        result[:cnpj] = cnpj
+      end
 
       result_temp = result
       result = {}
