@@ -170,7 +170,6 @@ module WebNfeFlexModels
       result = attributes.clone
       result.symbolize_keys!
 
-      result[:inscricao_estadual] = (self.isento_inscricao_estadual ? 'ISENTO' : self.inscricao_estadual)
       if !self.municipio_id.blank?
         result[:codigo_municipio] = self.municipio.codigo_municipio
         result[:municipio] = self.municipio.nome_municipio
@@ -182,14 +181,17 @@ module WebNfeFlexModels
       end
 
       [:id, :type, :domain_id, :municipio_id, :pais_id, :isento_inscricao_estadual,
+          :inscricao_estadual, :isento_inscricao_estadual_emissao, :inscricao_estadual_emissao,
           :endereco_completo, :is_fornecedor, :is_cliente, :nome_extenso, :created_at,
           :updated_at, :cnpj, :cnpj_emissao].each { |x| result.delete(x) }
 
       # verifica se usa cnpj_emissao
       if !cnpj_emissao.blank?
         result[:cnpj] = cnpj_emissao
+        result[:inscricao_estadual] = (self.isento_inscricao_estadual_emissao ? 'ISENTO' : self.inscricao_estadual_emissao)
       else
         result[:cnpj] = cnpj
+        result[:inscricao_estadual] = (self.isento_inscricao_estadual ? 'ISENTO' : self.inscricao_estadual)
       end
 
       result_temp = result
