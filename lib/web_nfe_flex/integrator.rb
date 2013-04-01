@@ -63,7 +63,7 @@ module NFe
               end
             end
 
-          elsif source_obj.codigo_status_efetivo == '101'
+          elsif source_obj.codigo_status_efetivo == '135'
             nf.update_attributes!(
                 'status' => 'cancelada',
                 'status_sefaz' => source_obj.codigo_status_efetivo,
