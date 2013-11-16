@@ -74,15 +74,15 @@ module WebNfeFlexModels
               :class_name => 'WebNfeFlexModels::Referenciada',
               :foreign_key => 'nota_fiscal_id'
 
-    belongs_to  :destinatario,
-                :class_name => 'WebNfeFlexModels::Destinatario',
-                :foreign_key => 'destinatario_id'
+    belongs_to  :person,
+                :class_name => 'WebNfeFlexModels::Person',
+                :foreign_key => 'person_id'
     belongs_to  :emitente,
                 :class_name => 'WebNfeFlexModels::Emitente',
                 :foreign_key => 'emitente_id'
-    belongs_to  :transportador,
-                :class_name => 'WebNfeFlexModels::Transportador',
-                :foreign_key => 'transportador_id'
+    belongs_to  :transporter,
+                :class_name => 'WebNfeFlexModels::Transporter',
+                :foreign_key => 'transporter_id'
     belongs_to  :municipio_entrega,
                 :class_name => 'WebNfeFlexModels::Municipio',
                 :foreign_key => 'municipio_entrega_id'
@@ -102,8 +102,8 @@ module WebNfeFlexModels
       result = attributes.clone
       result.symbolize_keys!
 
-      result.update(self.destinatario.values) if self.destinatario
-      result.update(self.transportador.values) if self.transportador
+      result.update(self.person.values) if self.person
+      result.update(self.transporter.values) if self.transporter
 
       if self.emitente
         result[:cnpj_emitente] = self.emitente.cnpj
@@ -152,38 +152,43 @@ module WebNfeFlexModels
     belongs_to :nota_fiscal
   end
 
-  class Destinatario < WebNfeFlexModel
-    set_table_name 'pessoas'
+  class Person < WebNfeFlexModel
+    set_table_name 'people'
+
+    has_many :contact_infos,
+      :order => 'created_at ASC',
+      :class_name => 'WebNfeFlexModels::ContactInfo',
+      :foreign_key => 'person_id'
+    has_one :default_address,
+      :class_name => "WebNfeFlexModels::Address",
+      :conditions => {:address_type => 'default'},
+      :foreign_key => 'person_id'
+    has_one :billing_address,
+      :class_name => "WebNfeFlexModels::Address",
+      :conditions => {:address_type => 'billing'},
+      :foreign_key => 'person_id'
 
     def self.inheritance_column
       nil
     end
 
-    belongs_to  :municipio,
-                :class_name => 'WebNfeFlexModels::Municipio',
-                :foreign_key => 'municipio_id'
-    belongs_to  :pais,
-                :class_name => 'WebNfeFlexModels::Pais',
-                :foreign_key => 'pais_id'
-
     def values
-      result = attributes.clone
-      result.symbolize_keys!
+      result = {}
+      [:cpf, :inscricao_suframa, :regime_simples_nacional, :inscricao_municipal].each {|x| result[x] = send(x) }
 
-      if !self.municipio_id.blank?
-        result[:codigo_municipio] = self.municipio.codigo_municipio
-        result[:municipio] = self.municipio.nome_municipio
-        result[:uf] = self.municipio.sigla_uf
+      if !self.nfe_address.municipio_id.blank?
+        result[:codigo_municipio] = self.nfe_address.municipio.codigo_municipio
+        result[:municipio] = self.nfe_address.municipio.nome_municipio
+        result[:uf] = self.nfe_address.municipio.sigla_uf
       end
-      if !self.pais_id.blank?
-        result[:codigo_pais] = self.pais.codigo
-        result[:pais] = self.pais.nome
+      [:logradouro, :bairro, :numero, :complemento, :cep].each { |x| result[x] = nfe_address.send(x) }
+      if !self.nfe_address.pais_id.blank?
+        result[:codigo_pais] = self.nfe_address.pais.codigo
+        result[:pais] = self.nfe_address.pais.nome
       end
-
-      [:id, :type, :domain_id, :municipio_id, :pais_id, :isento_inscricao_estadual,
-          :inscricao_estadual, :isento_inscricao_estadual_emissao, :inscricao_estadual_emissao,
-          :endereco_completo, :is_fornecedor, :is_cliente, :nome_extenso, :created_at,
-          :updated_at, :cnpj, :cnpj_emissao].each { |x| result.delete(x) }
+      result[:telefone] = self.phone unless self.phone.blank?
+      result[:email] = self.email unless self.email.blank?
+      result[:nome] = self.name
 
       # verifica se usa cnpj_emissao
       if !cnpj_emissao.blank?
@@ -202,36 +207,72 @@ module WebNfeFlexModels
 
       result
     end
+
+    def nfe_address
+      if billing_address && billing_address.nfe_enabled?
+        billing_address
+      else
+        default_address
+      end
+    end
+
+    def first_contact_value_by_type(type)
+      contact_infos.to_ary.find {|o| o.contact_type == type}.try(:value)
+    end
+
+    def phone
+      first_contact_value_by_type('phone')
+    end
+
+    def email
+      first_contact_value_by_type('email')
+    end
+
   end
 
-  class Transportador < WebNfeFlexModel
-    set_table_name 'pessoas'
+  class Address < WebNfeFlexModel
+    set_table_name 'addresses'
+    belongs_to :municipio,
+      :class_name => "WebNfeFlexModels::Municipio",
+      :foreign_key => 'municipio_id'
+    belongs_to :pais,
+      :class_name => "WebNfeFlexModels::Pais",
+      :foreign_key => 'pais_id'
+
+    def nfe_enabled?
+      !bairro.blank? && !numero.blank? && !municipio_id.blank? && !pais_id.blank? && !logradouro.blank? && !cep.blank?
+    end
+
+  end
+
+  class ContactInfo < WebNfeFlexModel
+    set_table_name 'contact_infos'
+  end
+
+  class Transporter < WebNfeFlexModel
+    set_table_name 'people'
 
     def self.inheritance_column
       nil
     end
 
-    belongs_to  :municipio,
-                :class_name => 'WebNfeFlexModels::Municipio',
-                :foreign_key => 'municipio_id'
-    belongs_to  :pais,
-                :class_name => 'WebNfeFlexModels::Pais',
-                :foreign_key => 'pais_id'
+    has_one :default_address,
+      :class_name => "WebNfeFlexModels::Address",
+      :conditions => {:address_type => 'default'},
+      :foreign_key => 'person_id'
+
 
     def values
-      result = attributes.clone
-      result.symbolize_keys!
+      result = {}
+      [:endereco_completo, :cnpj, :cpf, :inscricao_estadual].each {|x| result[x] = send(x) }
 
       result[:endereco] = result.delete(:endereco_completo)
-      if !self.municipio_id.blank?
-        result[:municipio] = self.municipio.nome_municipio
-        result[:uf] = self.municipio.sigla_uf
+      if !self.default_address.municipio_id.blank?
+        result[:municipio] = self.default_address.municipio.nome_municipio
+        result[:uf] = self.default_address.municipio.sigla_uf
       end
 
-      [:id, :type, :domain_id, :municipio_id, :pais_id, :isento_inscricao_estadual,
-          :is_fornecedor, :is_cliente, :nome_extenso, :logradouro, :numero,
-          :complemento, :bairro, :cep, :telefone, :inscricao_suframa, :email,
-          :created_at, :updated_at].each { |x| result.delete(x) }
+      result[:nome] = self.name
 
       result_temp = result
       result = {}
@@ -449,7 +490,7 @@ module WebNfeFlexModels
                 :class_name => 'WebNfeFlexModels::Prestador',
                 :foreign_key => 'prestador_id'
     belongs_to  :tomador,
-                :class_name => 'WebNfeFlexModels::Destinatario',
+                :class_name => 'WebNfeFlexModels::Person',
                 :foreign_key => 'tomador_id'
     belongs_to  :codigo_servico_sao_paulo,
                 :class_name => 'WebNfeFlexModels::CodigoServicoSaoPaulo',
@@ -464,7 +505,7 @@ module WebNfeFlexModels
                 :class_name => 'WebNfeFlexModels::Prestador',
                 :foreign_key => 'prestador_id'
     belongs_to  :tomador,
-                :class_name => 'WebNfeFlexModels::Destinatario',
+                :class_name => 'WebNfeFlexModels::Person',
                 :foreign_key => 'tomador_id'
     belongs_to  :codigo_servico_sao_paulo,
                 :class_name => 'WebNfeFlexModels::CodigoServicoSaoPaulo',
@@ -494,18 +535,18 @@ module WebNfeFlexModels
           result[:cpf_cnpj_tomador][:cnpj] = tomador.cnpj
         end
         result[:endereco_tomador] = {
-          :logradouro => tomador.logradouro,
-          :numero_endereco => tomador.numero,
-          :complemento_endereco => tomador.complemento,
-          :bairro => tomador.bairro,
-          :cidade => tomador.municipio.nil? ? nil : tomador.municipio.codigo_municipio,
-          :uf => tomador.municipio.nil? ? nil : tomador.municipio.sigla_uf,
-          :cep => tomador.cep
+          :logradouro => tomador.nfe_address.logradouro,
+          :numero_endereco => tomador.nfe_address.numero,
+          :complemento_endereco => tomador.nfe_address.complemento,
+          :bairro => tomador.nfe_address.bairro,
+          :cidade => tomador.nfe_address.municipio.nil? ? nil : tomador.nfe_address.municipio.codigo_municipio,
+          :uf => tomador.nfe_address.municipio.nil? ? nil : tomador.nfe_address.municipio.sigla_uf,
+          :cep => tomador.nfe_address.cep
         }
         result[:inscricao_municipal_tomador] = tomador.inscricao_municipal unless tomador.inscricao_municipal.blank?
         result[:inscricao_estadual_tomador] = tomador.inscricao_estadual unless tomador.inscricao_estadual.blank?
         result[:email_tomador] = tomador.email unless tomador.email.blank?
-        result[:razao_social_tomador] = tomador.nome
+        result[:razao_social_tomador] = tomador.name
       end
       result
     end
