@@ -301,12 +301,12 @@ module WebNfeFlexModels
     belongs_to  :nota_fiscal,
                 :class_name => 'WebNfeFlexModels::NotaFiscal',
                 :foreign_key => 'nota_fiscal_id'
-    belongs_to  :produto,
-                :class_name => 'WebNfeFlexModels::Produto',
-                :foreign_key => 'produto_id'
+    belongs_to  :product,
+                :class_name => 'WebNfeFlexModels::Product',
+                :foreign_key => 'product_id'
 
     def descricao_produto
-      self.produto ? self.produto.descricao : ''
+      self.product ? self.product.description : ''
     end
 
     def descricao_detalhada
@@ -330,11 +330,9 @@ module WebNfeFlexModels
       #  result[:issqn_codigo_municipio] = self.issqn_municipio.codigo_municipio
       #end
 
-      if self.produto
-        self.produto.values.each do |k, v|
-          if ![:id, :valor_unitario_comercial, :valor_unitario_tributavel].include?(k)
-            result[k] = v
-          end
+      if self.product
+        self.product.values.each do |k, v|
+          result[k] = v
         end
 
         configuracao = self.nota_fiscal.domain.configuracao
@@ -342,8 +340,8 @@ module WebNfeFlexModels
                               when 'nenhum':
                                 configuracao.capitulo_ncm.codigo
                               when 'capitulo':
-                                if !self.produto.capitulo_ncm.blank?
-                                  self.produto.capitulo_ncm.codigo
+                                if !self.product.capitulo_ncm.blank?
+                                  self.product.capitulo_ncm.codigo
                                 else
                                   nil
                                 end
@@ -366,27 +364,36 @@ module WebNfeFlexModels
 
       result[:documentos_importacao] = self.documentos_importacao.collect { |x| x.values }
 
-      [:id, :produto_id, :cfop_id, :domain_id, :nota_fiscal_id, :valor_entrada,
+      [:id, :product_id, :cfop_id, :domain_id, :nota_fiscal_id, :valor_entrada,
           :detalhe, :created_at, :updated_at].each { |x| result.delete(x) }
 
       result
     end
   end
 
-  class Produto < WebNfeFlexModel
-    set_table_name 'produtos'
+  class Product < WebNfeFlexModel
+    set_table_name 'products'
 
     belongs_to  :capitulo_ncm,
                 :class_name => 'WebNfeFlexModels::CapituloNcm',
                 :foreign_key => 'capitulo_ncm_id'
 
     def values
-      result = attributes.clone
-      result.symbolize_keys!
+      { :codigo_produto => code, :descricao => description, :codigo_ncm => codigo_ncm, :codigo_ex_tipi => codigo_ex_tipi,
+                 :genero => genero, :unidade_comercial => measurement_unit, :unidade_tributavel => taxable_measurement_unit,
+                 :codigo_barras_comercial => valid_barcode, :codigo_barras_tributavel => taxable_barcode
+      }
+    end
 
-      result[:codigo_produto] = result.delete(:codigo)
-
-      result
+    # barcode válido é apenas GTIN-8, GTIN-12, GTIN-13 ou GTIN-14
+    def valid_barcode
+      return nil if barcode.blank?
+      if [8, 12, 13, 14].include?(barcode.length) && barcode.scan(/\d/).length == barcode.length
+        # Ainda não validamos dígito verificador
+        barcode
+      else
+        nil
+      end
     end
   end
 
