@@ -542,13 +542,13 @@ module WebNfeFlexModels
           result[:cpf_cnpj_tomador][:cnpj] = tomador.cnpj
         end
         result[:endereco_tomador] = {
-          :logradouro => tomador.nfe_address.logradouro,
-          :numero_endereco => tomador.nfe_address.numero,
-          :complemento_endereco => tomador.nfe_address.complemento,
-          :bairro => tomador.nfe_address.bairro,
+          :logradouro => (tomador.nfe_address.logradouro.blank? ? nil : tomador.nfe_address.logradouro),
+          :numero_endereco => (tomador.nfe_address.numero.blank? ? nil : tomador.nfe_address.numero),
+          :complemento_endereco => (tomador.nfe_address.complemento.blank? ? nil : tomador.nfe_address.complemento),
+          :bairro => (tomador.nfe_address.bairro.blank? ? nil : tomador.nfe_address.bairro),
           :cidade => tomador.nfe_address.municipio.nil? ? nil : tomador.nfe_address.municipio.codigo_municipio,
           :uf => tomador.nfe_address.municipio.nil? ? nil : tomador.nfe_address.municipio.sigla_uf,
-          :cep => tomador.nfe_address.cep
+          :cep => (tomador.nfe_address.cep.blank? ? nil : tomador.nfe_address.cep)
         }
         result[:inscricao_municipal_tomador] = tomador.inscricao_municipal unless tomador.inscricao_municipal.blank?
         result[:inscricao_estadual_tomador] = tomador.inscricao_estadual unless tomador.inscricao_estadual.blank?
