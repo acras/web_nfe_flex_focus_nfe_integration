@@ -559,5 +559,9 @@ module WebNfeFlexModels
     end
   end
 
+  class AcrasNfeImport < WebNfeFlexModel
+    set_table_name 'acras_nfe_imports'
+  end
+
 end
 

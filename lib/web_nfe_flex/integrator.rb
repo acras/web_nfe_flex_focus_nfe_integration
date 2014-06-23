@@ -185,6 +185,33 @@ module NFe
           x.get(url.path)
         end
       end
+
+      def self.notify_pending_nfe_import(reference, nota_fiscal, client_app)
+        # importamos apenas notas canceladas ou autorizadas
+        return unless ['100', '135'].include?(nota_fiscal.codigo_status_efetivo)
+
+        if nota_fiscal.codigo_status_efetivo == '100'
+          status = 'autorizada'
+        elsif nota_fiscal.codigo_status_efetivo == '135'
+          status = 'cancelada'
+        end
+        obj = WebNfeFlexModels::AcrasNfeImport.create(:reference => reference,
+                                                :chave_nfe => nota_fiscal.chave,
+                                                :status => status,
+                                                :access_token => client_app.access_token,
+                                                :host =>  client_app.host)
+        obj.update_attribute(:type, 'NotaFiscalAcrasNfeImport')
+
+      end
+
+      def self.notify_pending_cce_import(reference, carta_correcao, client_app)
+        return # não implementado
+        obj = WebNfeFlexModels::AcrasNfeImport.create(:reference => reference,
+                                                :chave_nfe => carta_correcao.nota_fiscal.chave,
+                                                :access_token => client_app.access_token,
+                                                :host => client_app.host)
+        obj.update_attribute(:type, 'CartaCorrecaoAcrasNfeImport')
+      end
     end
   end
 end
