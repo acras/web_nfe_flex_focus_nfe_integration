@@ -1,3 +1,4 @@
+# encoding: utf-8
 require 'ostruct'
 require 'yaml'
 require 'erb'
@@ -77,17 +78,7 @@ module NFe
                 'mensagem_sefaz' => source_obj.mensagem_status_efetiva.to_s)
           end
 
-          c = config
-          path = "#{c.web_nfe_flex_address}/notas_fiscais/#{nf_id.to_i}/push"
-          url = URI.parse(path)
-          http = Net::HTTP::new(url.host, url.port)
-          if url.scheme == 'https'
-            http.use_ssl = true
-            http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-          end
-          http.start do |x|
-            x.get(url.path)
-          end
+          get_focus_nfe_url "notas_fiscais/#{nf_id.to_i}/push"
         end
       end
 
@@ -108,24 +99,14 @@ module NFe
           WebNfeFlexModels::CartaCorrecao.update_all({:status => "substituida"}, [ "nota_fiscal_id = ?  and status = ? and id <> ?",
                                    nf_id, "autorizada", cce.id])
         end
-        c = config
-        path = "#{c.web_nfe_flex_address}/notas_fiscais/#{nf_id.to_i}/cartas_correcao/#{n_seq}/push"
-        url = URI.parse(path)
-        http = Net::HTTP::new(url.host, url.port)
-        if url.scheme == 'https'
-          http.use_ssl = true
-          http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        end
-        http.start do |x|
-          x.get(url.path)
-        end
+        get_focus_nfe_url "notas_fiscais/#{nf_id.to_i}/cartas_correcao/#{n_seq}/push"
       end
 
       def self.find_nota_fiscal_servico(cidade, nf_id)
         nf_id = nf_id.gsub("nfse:", "").to_i
         if cidade == 'curitiba'
           klass = WebNfeFlexModels::NotaFiscalServico
-        elsif cidade = 'sao_paulo'
+        elsif cidade == 'sao_paulo'
           klass = WebNfeFlexModels::NotaFiscalSaoPaulo
         end
         if nf = klass.find_by_id(nf_id.to_i)
@@ -172,9 +153,59 @@ module NFe
           nfse.codigo_verificacao = rps.codigo_verificacao
         end
         nfse.save
-        # avisa juggernaut
+        # avisa focus nfe
+        get_focus_nfe_url "notas_fiscais_servico/#{nf_id.to_i}/push"
+      end
+
+      def self.notify_pending_nfe_import(reference, source_obj, client_app)
+
+        if ConsultaNotaFiscal === source_obj || source_obj.is_a?(CancelamentoNotaFiscal)
+          nota_fiscal = source_obj.nota_fiscal
+        else
+          nota_fiscal = source_obj
+        end
+
+        # importamos apenas notas canceladas ou autorizadas
+        # mas importamos cancelamento com erro
+        if !['100', '135'].include?(source_obj.codigo_status_efetivo) && !source_obj.is_a?(CancelamentoNotaFiscal)
+          return
+        end
+
+        if source_obj.codigo_status_efetivo == '100'
+          status = 'autorizada'
+        elsif source_obj.codigo_status_efetivo == '135'
+          status = 'cancelada'
+        elsif source_obj.is_a?(CancelamentoNotaFiscal)
+          status = 'erro_cancelamento'
+        end
+        obj = WebNfeFlexModels::AcrasNfeImport.create(:reference => reference,
+                                                :chave_nfe => nota_fiscal.chave,
+                                                :status => status,
+                                                :access_token => client_app.access_token,
+                                                :status_sefaz => source_obj.codigo_status_efetivo,
+                                                :mensagem_sefaz => source_obj.mensagem_status_efetiva.to_s,
+                                                :host =>  client_app.host)
+        obj.update_attribute(:type, 'NotaFiscalAcrasNfeImport')
+        get_focus_nfe_url "acras_nfe_imports/#{obj.id}/import", "access_token=#{obj.access_token}"
+      end
+
+      def self.notify_pending_cce_import(reference, carta_correcao, client_app)
+        autorizada = carta_correcao.codigo_status == '135' || carta_correcao.codigo_status == '136'
+        obj = WebNfeFlexModels::AcrasNfeImport.create(:reference => reference,
+                                                :chave_nfe => carta_correcao.nota_fiscal.chave,
+                                                :numero_sequencial_evento => carta_correcao.numero_sequencial_evento,
+                                                :status => autorizada ? "autorizada" : "erro",
+                                                :status_sefaz => carta_correcao.codigo_status_efetivo,
+                                                :mensagem_sefaz => carta_correcao.mensagem_status_efetiva.to_s,
+                                                :access_token => client_app.access_token,
+                                                :host => client_app.host)
+        obj.update_attribute(:type, 'CartaCorrecaoAcrasNfeImport')
+        get_focus_nfe_url "acras_nfe_imports/#{obj.id}/import", "access_token=#{obj.access_token}"
+      end
+      
+      def self.get_focus_nfe_url(path, params = nil)
         c = config
-        path = "#{c.web_nfe_flex_address}/notas_fiscais_servico/#{nf_id.to_i}/push"
+        path = "#{c.web_nfe_flex_address}/#{path}"
         url = URI.parse(path)
         http = Net::HTTP::new(url.host, url.port)
         if url.scheme == 'https'
@@ -182,35 +213,12 @@ module NFe
           http.verify_mode = OpenSSL::SSL::VERIFY_NONE
         end
         http.start do |x|
-          x.get(url.path)
+          if params.nil?
+            x.get(url.path)
+          else
+            x.get(url.path+"?"+params)
+          end
         end
-      end
-
-      def self.notify_pending_nfe_import(reference, nota_fiscal, client_app)
-        # importamos apenas notas canceladas ou autorizadas
-        return unless ['100', '135'].include?(nota_fiscal.codigo_status_efetivo)
-
-        if nota_fiscal.codigo_status_efetivo == '100'
-          status = 'autorizada'
-        elsif nota_fiscal.codigo_status_efetivo == '135'
-          status = 'cancelada'
-        end
-        obj = WebNfeFlexModels::AcrasNfeImport.create(:reference => reference,
-                                                :chave_nfe => nota_fiscal.chave,
-                                                :status => status,
-                                                :access_token => client_app.access_token,
-                                                :host =>  client_app.host)
-        obj.update_attribute(:type, 'NotaFiscalAcrasNfeImport')
-
-      end
-
-      def self.notify_pending_cce_import(reference, carta_correcao, client_app)
-        return # não implementado
-        obj = WebNfeFlexModels::AcrasNfeImport.create(:reference => reference,
-                                                :chave_nfe => carta_correcao.nota_fiscal.chave,
-                                                :access_token => client_app.access_token,
-                                                :host => client_app.host)
-        obj.update_attribute(:type, 'CartaCorrecaoAcrasNfeImport')
       end
     end
   end
