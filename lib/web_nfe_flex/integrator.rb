@@ -186,7 +186,7 @@ module NFe
                                                 :mensagem_sefaz => source_obj.mensagem_status_efetiva.to_s,
                                                 :host =>  client_app.host)
         obj.update_attribute(:type, 'NotaFiscalAcrasNfeImport')
-        get_focus_nfe_url "acras_nfe_imports/#{obj.id}/import", "access_token=#{obj.access_token}"
+        get_focus_nfe_url "acras_nfe_imports/#{obj.id}/import", "access_token=#{URI.escape(obj.access_token, /[^-A-Za-z0-9_.*]/)}"
       end
 
       def self.notify_pending_cce_import(reference, carta_correcao, client_app)
@@ -200,7 +200,7 @@ module NFe
                                                 :access_token => client_app.access_token,
                                                 :host => client_app.host)
         obj.update_attribute(:type, 'CartaCorrecaoAcrasNfeImport')
-        get_focus_nfe_url "acras_nfe_imports/#{obj.id}/import", "access_token=#{obj.access_token}"
+        get_focus_nfe_url "acras_nfe_imports/#{obj.id}/import", "access_token=#{URI.escape(obj.access_token, /[^-A-Za-z0-9_.*]/)}"
       end
       
       def self.get_focus_nfe_url(path, params = nil)
