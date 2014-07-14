@@ -159,7 +159,11 @@ module NFe
 
       def self.notify_pending_nfe_import(reference, source_obj, client_app)
 
-        if ConsultaNotaFiscal === source_obj || source_obj.is_a?(CancelamentoNotaFiscal)
+        if ConsultaNotaFiscal === source_obj
+          source_obj = source_obj.nota_fiscal
+        end
+
+        if source_obj.is_a?(CancelamentoNotaFiscal)
           nota_fiscal = source_obj.nota_fiscal
         else
           nota_fiscal = source_obj
