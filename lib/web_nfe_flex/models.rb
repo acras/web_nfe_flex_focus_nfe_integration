@@ -188,7 +188,11 @@ module WebNfeFlexModels
       end
       result[:telefone] = self.phone unless self.phone.blank?
       result[:email] = self.email unless self.email.blank?
-      result[:nome] = self.name
+      if legal_type == 'legal'
+        result[:nome] = self.razao_social
+      else
+        result[:nome] = self.name
+      end
 
       # verifica se usa cnpj_emissao
       if !cnpj_emissao.blank?
