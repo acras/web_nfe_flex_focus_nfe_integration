@@ -188,7 +188,7 @@ module WebNfeFlexModels
       end
       result[:telefone] = self.phone unless self.phone.blank?
       result[:email] = self.email unless self.email.blank?
-      if legal_type == 'legal'
+      if legal_type == 'LEGAL'
         result[:nome] = self.razao_social
       else
         result[:nome] = self.name
