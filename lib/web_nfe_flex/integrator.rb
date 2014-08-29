@@ -64,7 +64,7 @@ module NFe
               end
             end
 
-          elsif source_obj.codigo_status_efetivo == '135'
+          elsif %w(135 136 101 151 155).include?(source_obj.codigo_status_efetivo)
             nf.update_attributes!(
                 'status' => 'cancelada',
                 'status_sefaz' => source_obj.codigo_status_efetivo,
@@ -171,13 +171,13 @@ module NFe
 
         # importamos apenas notas canceladas ou autorizadas
         # mas importamos cancelamento com erro
-        if !['100', '135'].include?(source_obj.codigo_status_efetivo) && !source_obj.is_a?(CancelamentoNotaFiscal)
+        if !%w(100 135 136 101 151 155).include?(source_obj.codigo_status_efetivo) && !source_obj.is_a?(CancelamentoNotaFiscal)
           return
         end
 
         if source_obj.codigo_status_efetivo == '100'
           status = 'autorizada'
-        elsif source_obj.codigo_status_efetivo == '135'
+        elsif %w(135 136 101 151 155).include?(source_obj.codigo_status_efetivo)
           status = 'cancelada'
         elsif source_obj.is_a?(CancelamentoNotaFiscal)
           status = 'erro_cancelamento'
