@@ -83,13 +83,18 @@ module NFe
       end
 
       def self.notify_completion_cce(nf_id, source_obj)
-        n_seq = source_obj.request_xml.document.numero_sequencial_evento
+        #n_seq = source_obj.request_xml.document.numero_sequencial_evento
+
+        return if source_obj.reference.blank?
+
         # busca cce do flex
-        cce = WebNfeFlexModels::CartaCorrecao.find_by_nota_fiscal_id_and_versao(nf_id, n_seq)
+        cce = WebNfeFlexModels::CartaCorrecao.find_by_nota_fiscal_id_and_id(nf_id, source_obj.reference)
         return unless cce
+
         autorizada = source_obj.codigo_status == '135' || source_obj.codigo_status == '136'
         # atualiza
         cce.update_attributes!(
+          :versao => source_obj.numero_sequencial_evento,
           :status => autorizada ? "autorizada" : "erro",
           :status_sefaz => source_obj.codigo_status.to_s,
           :mensagem_sefaz => source_obj.mensagem_status.to_s
@@ -99,7 +104,7 @@ module NFe
           WebNfeFlexModels::CartaCorrecao.update_all({:status => "substituida"}, [ "nota_fiscal_id = ?  and status = ? and id <> ?",
                                    nf_id, "autorizada", cce.id])
         end
-        get_focus_nfe_url "notas_fiscais/#{nf_id.to_i}/cartas_correcao/#{n_seq}/push"
+        get_focus_nfe_url "notas_fiscais/#{nf_id.to_i}/cartas_correcao/#{cce.id}/push"
       end
 
       def self.find_nota_fiscal_servico(cidade, nf_id)
