@@ -1,3 +1,4 @@
+# encoding: utf-8
 module WebNfeFlexModels
 
   class WebNfeFlexModel < ActiveRecord::Base
@@ -346,15 +347,15 @@ module WebNfeFlexModels
 
         configuracao = self.nota_fiscal.domain.configuracao
         result[:codigo_ncm] = case configuracao.mostrar_ncm
-                              when 'nenhum':
+                              when 'nenhum'
                                 configuracao.capitulo_ncm.codigo
-                              when 'capitulo':
+                              when 'capitulo'
                                 if !self.product.capitulo_ncm.blank?
                                   self.product.capitulo_ncm.codigo
                                 else
                                   nil
                                 end
-                              when 'codigo':
+                              when 'codigo'
                                 result[:codigo_ncm]
                               else
                                 nil
