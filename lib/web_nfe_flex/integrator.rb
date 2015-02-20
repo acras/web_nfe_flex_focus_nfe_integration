@@ -44,7 +44,7 @@ module NFe
 
         if nf
           autorizada = source_obj.codigo_status_efetivo == '100'
-          denegada = source_obj.codigo_status_efetivo.to_i >= 300 && source_obj.codigo_status_efetivo.to_i < 400
+          denegada = source_obj.codigo_status_efetivo.to_i >= 300 && source_obj.codigo_status_efetivo.to_i < 310
 
           if autorizada || denegada
             status = autorizada ? 'autorizada' : 'denegada'
@@ -211,7 +211,7 @@ module NFe
         obj.update_attribute(:type, 'CartaCorrecaoAcrasNfeImport')
         get_focus_nfe_url "acras_nfe_imports/#{obj.id}/import", "access_token=#{URI.escape(obj.access_token, /[^-A-Za-z0-9_.*]/)}"
       end
-      
+
       def self.get_focus_nfe_url(path, params = nil)
         c = config
         path = "#{c.web_nfe_flex_address}/#{path}"
