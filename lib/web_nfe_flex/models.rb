@@ -2,7 +2,7 @@ module WebNfeFlexModels
 
   class WebNfeFlexModel < ActiveRecord::Base
     db_config = File.open(File.dirname(__FILE__) + '/database.yml') { |x| YAML.load(x) }
-    establish_connection(db_config[ENV['RAILS_ENV'] || 'development'])
+    establish_connection(db_config[Rails.env || 'development'])
 
     def self.codigos_uf_ibge
       { 'AC' => '12', 'AL' => '27', 'AP' => '16',
