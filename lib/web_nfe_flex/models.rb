@@ -48,10 +48,10 @@ module WebNfeFlexModels
                 :class_name => 'WebNfeFlexModels::CapituloNcm',
                 :foreign_key => 'capitulo_ncm_id'
   end
-  
+
   class Domain < WebNfeFlexModel
     set_table_name 'domains'
-    
+
     belongs_to :configuracao,
                :class_name => 'WebNfeFlexModels::Configuracao'
   end
@@ -573,4 +573,3 @@ module WebNfeFlexModels
   end
 
 end
-
