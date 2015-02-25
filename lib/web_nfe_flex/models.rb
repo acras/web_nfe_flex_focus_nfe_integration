@@ -229,12 +229,16 @@ module WebNfeFlexModels
       contact_infos.to_ary.find {|o| o.contact_type == type}.try(:value)
     end
 
+    def all_contact_values_by_type(type)
+      contact_infos.to_ary.select {|o| o.contact_type == type}.collect(&:value).join(',')
+    end
+
     def phone
       first_contact_value_by_type('phone')
     end
 
     def email
-      first_contact_value_by_type('email')
+      all_contact_values_by_type('email')
     end
 
   end
