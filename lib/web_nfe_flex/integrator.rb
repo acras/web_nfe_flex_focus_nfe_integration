@@ -218,8 +218,8 @@ module NFe
         url = URI.parse(path)
         http = Net::HTTP::new(url.host, url.port)
         if url.scheme == 'https'
-          http.use_ssl = true
-          http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+          #http.use_ssl = true
+          #http.verify_mode = OpenSSL::SSL::VERIFY_NONE
         end
         http.start do |x|
           if params.nil?

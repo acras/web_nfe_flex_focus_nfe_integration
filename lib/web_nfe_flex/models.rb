@@ -1,9 +1,10 @@
 # encoding: utf-8
+
 module WebNfeFlexModels
 
   class WebNfeFlexModel < ActiveRecord::Base
     db_config = File.open(File.dirname(__FILE__) + '/database.yml') { |x| YAML.load(x) }
-    establish_connection(db_config[ENV['RAILS_ENV'] || 'development'])
+    establish_connection(db_config[Rails.env || 'development'])
 
     def self.codigos_uf_ibge
       { 'AC' => '12', 'AL' => '27', 'AP' => '16',
@@ -49,10 +50,10 @@ module WebNfeFlexModels
                 :class_name => 'WebNfeFlexModels::CapituloNcm',
                 :foreign_key => 'capitulo_ncm_id'
   end
-  
+
   class Domain < WebNfeFlexModel
     set_table_name 'domains'
-    
+
     belongs_to :configuracao,
                :class_name => 'WebNfeFlexModels::Configuracao'
   end
@@ -230,12 +231,16 @@ module WebNfeFlexModels
       contact_infos.to_ary.find {|o| o.contact_type == type}.try(:value)
     end
 
+    def all_contact_values_by_type(type)
+      contact_infos.to_ary.select {|o| o.contact_type == type}.collect(&:value).join(',')
+    end
+
     def phone
       first_contact_value_by_type('phone')
     end
 
     def email
-      first_contact_value_by_type('email')
+      all_contact_values_by_type('email')
     end
 
   end
@@ -574,4 +579,3 @@ module WebNfeFlexModels
   end
 
 end
-
