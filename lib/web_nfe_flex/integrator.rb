@@ -125,6 +125,24 @@ module NFe
         nfse = WebNfeFlexModels::NotaFiscalServico.find_by_id(nf_id)
         return unless nfse
         # verifica resposta
+        # primeiro verifica cancelamento
+        if source_obj.cancelado? || source_obj.erro_cancelamento?
+          if source_obj.cancelado?
+            nfse.status = 'cancelada'
+          elsif source_obj.erro_cancelamento?
+            nfse.status = 'erro_cancelamento'
+            msg = source_obj.mensagem_erro_cancelamento
+            if msg.is_a?(Array)
+              nfse.mensagem_prefeitura = msg.collect {|o| "#{o['codigo']} - #{o['mensagem']}"}.join("\n")
+            else
+              nfse.mensagem_prefeitura = msg.to_s
+            end
+          end
+          nfse.save
+          get_focus_nfe_url "notas_fiscais_servico/#{nf_id.to_i}/push"
+          return
+        end
+        # testa agora autorização
         response = source_obj.lote_rps.response_xml.document
         rps = source_obj.lote_rps.rps.first
         if response.sucesso == "false"
