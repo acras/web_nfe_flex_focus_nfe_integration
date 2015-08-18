@@ -205,7 +205,10 @@ module NFe
         elsif source_obj.is_a?(CancelamentoNotaFiscal)
           status = 'erro_cancelamento'
         end
+        emp = nota_fiscal.documento_original.empresa
         obj = WebNfeFlexModels::AcrasNfeImport.create(:reference => reference,
+                                                :cnpj_emitente => emp.cnpj,
+                                                :uf_emitente => emp.uf,
                                                 :chave_nfe => nota_fiscal.chave,
                                                 :status => status,
                                                 :access_token => client_app.access_token,
@@ -218,7 +221,10 @@ module NFe
 
       def self.notify_pending_cce_import(reference, carta_correcao, client_app)
         autorizada = carta_correcao.codigo_status == '135' || carta_correcao.codigo_status == '136'
+        emp = carta_correcao.nota_fiscal.documento_original.empresa
         obj = WebNfeFlexModels::AcrasNfeImport.create(:reference => reference,
+                                                :cnpj_emitente => emp.cnpj,
+                                                :uf_emitente => emp.uf,
                                                 :chave_nfe => carta_correcao.nota_fiscal.chave,
                                                 :numero_sequencial_evento => carta_correcao.numero_sequencial_evento,
                                                 :status => autorizada ? "autorizada" : "erro",
