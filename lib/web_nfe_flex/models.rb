@@ -386,18 +386,33 @@ module WebNfeFlexModels
     end
   end
 
+  class ProductType < WebNfeFlexModel
+    set_table_name 'product_types'
+  end
+
   class Product < WebNfeFlexModel
     set_table_name 'products'
+
+    belongs_to  :product_type,
+                :class_name => 'WebNfeFlexModels::ProductType',
+                :foreign_key => 'product_type_id'
 
     belongs_to  :capitulo_ncm,
                 :class_name => 'WebNfeFlexModels::CapituloNcm',
                 :foreign_key => 'capitulo_ncm_id'
 
     def values
-      { :codigo_produto => code, :descricao => description, :codigo_ncm => codigo_ncm, :codigo_ex_tipi => codigo_ex_tipi,
+      { :codigo_produto => code, :descricao => description, :codigo_ncm => codigo_ncm_efetivo, :codigo_ex_tipi => codigo_ex_tipi,
                  :genero => genero, :unidade_comercial => measurement_unit, :unidade_tributavel => taxable_measurement_unit,
                  :codigo_barras_comercial => valid_barcode, :codigo_barras_tributavel => taxable_barcode
       }
+    end
+
+    def codigo_ncm_efetivo
+      ncm = self.codigo_ncm
+      ncm = product_type.try(:codigo_ncm) if ncm.blank?
+      return nil if ncm.blank?
+      ncm
     end
 
     # barcode válido é apenas GTIN-8, GTIN-12, GTIN-13 ou GTIN-14
