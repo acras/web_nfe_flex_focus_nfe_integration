@@ -485,12 +485,19 @@ module WebNfeFlexModels
     end
   end
 
+  class Sale < WebNfeFlexModel
+    set_table_name 'sales'
+  end
+
   class Referenciada < WebNfeFlexModel
     set_table_name 'referenciadas'
 
     belongs_to  :referenciada,
                 :class_name => 'WebNfeFlexModels::NotaFiscal',
                 :foreign_key => :referenciada_id
+    belongs_to  :sale,
+                :class_name => 'WebNfeFlexModels::Sale',
+                :foreign_key => :sale_id
 
     def values
       result = attributes.clone
@@ -498,6 +505,8 @@ module WebNfeFlexModels
 
       if self.referenciada
         result[:chave_nfe] = self.referenciada.chave_nfe.gsub(/^NFe/, '')
+      elsif !self.sale.nil?
+        result[:chave_nfe] = self.sale.chave_nfce.gsub(/^NFe/, '')
       elsif !self.chave_externa.blank?
         result[:chave_nfe] = self.chave_externa
       else

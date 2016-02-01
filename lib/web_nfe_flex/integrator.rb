@@ -149,10 +149,10 @@ module NFe
           # adiciona mensagens de erro
           msgs = []
           response.alertas.each do |alerta|
-            msgs << alerta.codigo + ' - '+alerta.mensagem
+            msgs << alerta.codigo.to_s + ' - '+alerta.mensagem.to_s
           end
           response.erros.each do |erro|
-            msgs << erro.codigo + ' - '+erro.mensagem
+            msgs << erro.codigo.to_s + ' - '+erro.mensagem.to_s
           end
           nfse.status = 'erro_autorizacao'
           nfse.mensagem_prefeitura = msgs.join("\n")
