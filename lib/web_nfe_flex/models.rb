@@ -51,11 +51,17 @@ module WebNfeFlexModels
                 :foreign_key => 'capitulo_ncm_id'
   end
 
+  class SystemParam < WebNfeFlexModel
+    set_table_name 'system_params'
+  end
+
   class Domain < WebNfeFlexModel
     set_table_name 'domains'
 
     belongs_to :configuracao,
                :class_name => 'WebNfeFlexModels::Configuracao'
+    belongs_to :system_param,
+               :class_name => 'WebNfeFlexModels::SystemParam'
   end
 
   class NotaFiscal < WebNfeFlexModel
@@ -400,6 +406,9 @@ module WebNfeFlexModels
     belongs_to  :capitulo_ncm,
                 :class_name => 'WebNfeFlexModels::CapituloNcm',
                 :foreign_key => 'capitulo_ncm_id'
+    belongs_to  :domain,
+                :class_name => 'WebNfeFlexModels::Domain',
+                :foreign_key => 'domain_id'
 
     def values
       { :codigo_produto => code, :descricao => description, :codigo_ncm => codigo_ncm_efetivo, :codigo_ex_tipi => codigo_ex_tipi,
@@ -411,6 +420,7 @@ module WebNfeFlexModels
     def codigo_ncm_efetivo
       ncm = self.codigo_ncm
       ncm = product_type.try(:codigo_ncm) if ncm.blank?
+      ncm = domain.system_param.codigo_ncm if ncm.blank?
       return nil if ncm.blank?
       ncm
     end
