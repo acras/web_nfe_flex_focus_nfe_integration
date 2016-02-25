@@ -60,7 +60,7 @@ module WebNfeFlexModels
 
     belongs_to :configuracao,
                :class_name => 'WebNfeFlexModels::Configuracao'
-    belongs_to :system_param,
+    has_one :system_param,
                :class_name => 'WebNfeFlexModels::SystemParam'
   end
 
