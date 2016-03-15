@@ -411,7 +411,7 @@ module WebNfeFlexModels
                 :foreign_key => 'domain_id'
 
     def values
-      { :codigo_produto => code, :descricao => description, :codigo_ncm => codigo_ncm_efetivo, :codigo_ex_tipi => codigo_ex_tipi,
+      { :codigo_produto => code, :descricao => description, :codigo_ncm => codigo_ncm_efetivo, :codigo_cest => codigo_cest, :codigo_ex_tipi => codigo_ex_tipi,
                  :genero => genero, :unidade_comercial => measurement_unit, :unidade_tributavel => taxable_measurement_unit,
                  :codigo_barras_comercial => valid_barcode, :codigo_barras_tributavel => taxable_barcode
       }
