@@ -510,19 +510,37 @@ module WebNfeFlexModels
                 :foreign_key => :sale_id
 
     def values
-      result = attributes.clone
-      result.symbolize_keys!
+      result = {}
 
-      if self.referenciada
+      case tipo
+      when 'nfe_interna'
         result[:chave_nfe] = self.referenciada.chave_nfe.gsub(/^NFe/, '')
-      elsif !self.sale.nil?
-        result[:chave_nfe] = self.sale.chave_nfce.gsub(/^NFe/, '')
-      elsif !self.chave_externa.blank?
+      when 'nfe_externa'
         result[:chave_nfe] = self.chave_externa
-      else
+      when 'nf_um_ou_um_a'
         result[:modelo] = '01'
         result[:mes] = '%02d%02d' % [self.ano, self.mes]
+        result[:cnpj] = self.cnpj
         result[:uf] = self.class.codigos_uf_ibge[self.uf]
+        result[:serie] = self.serie
+        result[:numero] = self.numero
+      when 'nf_produtor'
+        result[:uf_nf_produtor] = self.class.codigos_uf_ibge[self.uf]
+        result[:mes_nf_produtor] ='%02d%02d' % [self.ano, self.mes]
+        result[:cnpj_nf_produtor] = self.cnpj
+        result[:cpf_nf_produtor] = self.cpf
+        result[:inscricao_estadual_nf_produtor] = self.inscricao_estadual
+        result[:modelo_nf_produtor] = self.modelo
+        result[:serie_nf_produtor] = self.serie
+        result[:numero_nf_produtor] = self.numero
+      when 'cte'
+        result[:chave_nfe] = self.chave_externa
+      when 'cupom_fiscal'
+        result[:modelo_ecf] = self.modelo
+        result[:numero_ecf] = self.numero_ecf
+        result[:coo] = self.numero_coo
+      when 'nfce'
+        result[:chave_nfe] = self.sale.chave_nfce.gsub(/^NFe/, '')
       end
 
       result
