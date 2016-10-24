@@ -315,10 +315,9 @@ module WebNfeFlexModels
     belongs_to  :cfop,
                 :class_name => 'WebNfeFlexModels::Cfop',
                 :foreign_key => 'cfop_id'
-    # ainda não tem no acras_nfe:
-    #belongs_to  :issqn_municipio,
-    #            :class_name => 'WebNfeFlexModels::Municipio',
-    #            :foreign_key => 'issqn_municipio_id'
+    belongs_to  :issqn_municipio,
+               :class_name => 'WebNfeFlexModels::Municipio',
+               :foreign_key => 'issqn_municipio_id'
     belongs_to  :nota_fiscal,
                 :class_name => 'WebNfeFlexModels::NotaFiscal',
                 :foreign_key => 'nota_fiscal_id'
@@ -346,10 +345,9 @@ module WebNfeFlexModels
       result[:icms_margem_valor_adicionado_st] = result.delete(:icms_porcentual_margem_valor_adicionado_st)
       result[:icms_reducao_base_calculo_st] = result.delete(:icms_porcentual_reducao_base_calculo_st)
 
-      # ainda não tem no acras_nfe:
-      #if !self.issqn_municipio_id.blank?
-      #  result[:issqn_codigo_municipio] = self.issqn_municipio.codigo_municipio
-      #end
+      if !self.issqn_municipio_id.blank?
+       result[:issqn_codigo_municipio] = self.issqn_municipio.codigo_municipio
+      end
 
       if self.product
         self.product.values.each do |k, v|
