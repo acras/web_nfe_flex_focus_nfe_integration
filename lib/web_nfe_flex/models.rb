@@ -144,6 +144,12 @@ module WebNfeFlexModels
       result[:volumes] = self.volumes.collect { |x| x.values }
       result[:notas_referenciadas] = self.referenciadas.collect { |x| x.values }
 
+      # incide issqn?
+      if result[:items].any?{|i| !i[:issqn_indicador_exigibilidade].blank? }
+        # no futuro isso pode vir da interface
+        result[:data_prestacao_servico] = result[:data_emissao]
+      end
+
       [:id, :created_at, :updated_at, :destinatario_id, :emitente_id, :status_sefaz,
           :mensagem_sefaz, :chave_nfe, :revenda, :ultima_etapa, :impostos_calculados,
           :justificativa_cancelamento, :domain_id, :transportador_id, :status, :tipo_venda,
@@ -318,6 +324,12 @@ module WebNfeFlexModels
     belongs_to  :issqn_municipio,
                :class_name => 'WebNfeFlexModels::Municipio',
                :foreign_key => 'issqn_municipio_id'
+    belongs_to  :issqn_municipio_incidencia,
+               :class_name => 'WebNfeFlexModels::Municipio',
+               :foreign_key => 'issqn_municipio_incidencia_id'
+    belongs_to  :issqn_pais,
+               :class_name => 'WebNfeFlexModels::Pais',
+               :foreign_key => 'issqn_pais_id'
     belongs_to  :nota_fiscal,
                 :class_name => 'WebNfeFlexModels::NotaFiscal',
                 :foreign_key => 'nota_fiscal_id'
@@ -347,6 +359,12 @@ module WebNfeFlexModels
 
       if !self.issqn_municipio_id.blank?
        result[:issqn_codigo_municipio] = self.issqn_municipio.codigo_municipio
+      end
+      if !self.issqn_municipio_incidencia_id.blank?
+       result[:issqn_codigo_municipio_incidencia] = self.issqn_municipio_incidencia.codigo_municipio
+      end
+      if !self.issqn_pais_id.blank?
+       result[:issqn_codigo_pais] = self.issqn_pais.codigo
       end
 
       if self.product
