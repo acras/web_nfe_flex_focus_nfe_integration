@@ -294,7 +294,7 @@ module WebNfeFlexModels
       [:endereco_completo, :cnpj, :cpf, :inscricao_estadual].each {|x| result[x] = send(x) }
 
       result[:endereco] = result.delete(:endereco_completo)
-      if !self.default_address.municipio_id.blank?
+      if !self.try(:default_address).try(:municipio_id).blank?
         result[:municipio] = self.default_address.municipio.nome_municipio
         result[:uf] = self.default_address.municipio.sigla_uf
       end
