@@ -192,6 +192,9 @@ module NFe
           nota_fiscal = source_obj
         end
 
+        # não importamos NFCe
+        return if nota_fiscal.modelo == '65'
+
         # importamos apenas notas canceladas ou autorizadas
         # mas importamos cancelamento com erro
         if !%w(100 135 136 101 151 155).include?(source_obj.codigo_status_efetivo) && !source_obj.is_a?(CancelamentoNotaFiscal)
