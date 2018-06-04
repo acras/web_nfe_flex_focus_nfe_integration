@@ -434,7 +434,7 @@ module WebNfeFlexModels
         ret[:codigo_barras_comercial] = valid_barcode
       end
       unless taxable_barcode.nil?
-        ret[:codigo_barras_tributavel] = taxable_barcode
+        ret[:codigo_barras_tributavel] = valid_taxable_barcode
       end
       ret
     end
@@ -457,6 +457,16 @@ module WebNfeFlexModels
         nil
       end
     end
+
+    def valid_taxable_barcode
+      # se GTIN tributável vazio, preenche com GTIN comercial
+      if taxable_barcode.blank?
+        valid_barcode
+      else
+        taxable_barcode
+      end
+    end
+
   end
 
   class Duplicata < WebNfeFlexModel
