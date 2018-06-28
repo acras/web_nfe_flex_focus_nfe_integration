@@ -446,7 +446,7 @@ module WebNfeFlexModels
     # barcode válido é apenas GTIN-8, GTIN-12, GTIN-13 ou GTIN-14
     def valid_barcode
       return nil if barcode.blank?
-      if barcode.scan(/\d/).length == barcode.length && self.check_gtin(barcode)
+      if barcode.scan(/\d/).length == barcode.length && check_gtin(barcode)
         barcode
       else
         nil
@@ -462,7 +462,7 @@ module WebNfeFlexModels
       end
     end
 
-    def self.check_gtin (gtin)
+    def check_gtin (gtin)
       gtin = gtin.to_s
       if (gtin.length != 8 && gtin.length != 12 && gtin.length != 13 && gtin.length != 14)
         return false
