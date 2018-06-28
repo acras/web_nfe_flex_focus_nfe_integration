@@ -446,8 +446,7 @@ module WebNfeFlexModels
     # barcode válido é apenas GTIN-8, GTIN-12, GTIN-13 ou GTIN-14
     def valid_barcode
       return nil if barcode.blank?
-      if [8, 12, 13, 14].include?(barcode.length) && barcode.scan(/\d/).length == barcode.length
-        # Ainda não validamos dígito verificador
+      if barcode.scan(/\d/).length == barcode.length && self.check_gtin(barcode)
         barcode
       else
         nil
@@ -462,6 +461,45 @@ module WebNfeFlexModels
         taxable_barcode
       end
     end
+
+    def self.check_gtin (gtin)
+      gtin = gtin.to_s
+      if (gtin.length != 8 && gtin.length != 12 && gtin.length != 13 && gtin.length != 14)
+        return false
+      end
+      # GTIN math preparations
+      barcode_array = gtin.split('')                                       # Split GTIN into array
+      gtin_maths = [3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3]     # Modifers for the GTIN calculation
+      modifier = (16 - gtin.length)                                        # Find the offset for modifer tuple start
+      gtin_check_digit = gtin[-1, 1]                                       # Get the check digit provided
+      gtin_length = gtin.length                                            # GTIN provided's length
+
+      # Temporary variables
+      check_digit_array = {}
+      tmp_check_digit = 0
+      tmp_check_sum = 0
+
+      # Run through and put digits into multiplication table
+      for i in 0..(gtin_length - 2)
+        check_digit_array[modifier.to_i + i.to_i] = barcode_array[i.to_i]  # Add barcode digits to Multiplication Table
+      end
+
+      # Calculate "Sum" of barcode digits
+      for i in modifier..17
+        tmp_check_sum = (tmp_check_sum.to_i + (check_digit_array[i].to_i * gtin_maths[i].to_i)).to_i  # Do math on consituents
+      end
+
+      # Difference from Rounded-Up-To-Nearest-10 - Fianl Check Digit Calculation
+      tmp_check_digit = (((tmp_check_sum.to_f / 10).ceil * 10).to_f - tmp_check_sum.to_f).to_i
+
+      # Check if last digit is same as calculated check digit
+      if gtin_check_digit.to_i == tmp_check_digit.to_i
+        return true
+      else
+        return false
+      end
+    end
+
 
   end
 
