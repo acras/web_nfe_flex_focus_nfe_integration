@@ -428,7 +428,7 @@ module WebNfeFlexModels
 
     def values
       ret = { :codigo_produto => code, :descricao => description, :codigo_ncm => codigo_ncm_efetivo, :codigo_cest => codigo_cest, :codigo_ex_tipi => codigo_ex_tipi,
-                 :genero => genero, :unidade_comercial => measurement_unit, :unidade_tributavel => taxable_measurement_unit,
+                 :genero => genero, :unidade_comercial => measurement_unit, :unidade_tributavel => taxable_measurement_unit, :codigo_beneficio_fiscal => codigo_beneficio_fiscal
       }
       ret[:codigo_barras_comercial] = valid_barcode
       ret[:codigo_barras_tributavel] = valid_taxable_barcode
