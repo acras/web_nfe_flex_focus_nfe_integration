@@ -117,6 +117,13 @@ module WebNfeFlexModels
         result[:cnpj_emitente] = self.emitente.cnpj
         result[:uf_emitente] = self.emitente.uf
         result[:regime_tributario_emitente] = self.emitente.regime_tributario
+        # verifica estados que tem problema com fuso horário
+        if %w(BA).include?(self.emitente.uf)
+          if result[:data_emissao] == Date.today
+            # acrescenta algumas horas para garantir
+            result[:data_emissao] = result[:data_emissao].to_time + 2.hours
+          end
+        end
       end
 
       if !self.municipio_entrega_id.blank?
@@ -190,7 +197,7 @@ module WebNfeFlexModels
       result = {}
       [:cpf, :inscricao_suframa, :regime_simples_nacional, :inscricao_municipal].each {|x| result[x] = send(x) }
 
-      if !self.nfe_address.municipio_id.blank?
+      if !self.nfe_address.try(:municipio_id).blank?
         result[:codigo_municipio] = self.nfe_address.municipio.codigo_municipio
         result[:municipio] = self.nfe_address.municipio.nome_municipio
         result[:uf] = self.nfe_address.municipio.sigla_uf
