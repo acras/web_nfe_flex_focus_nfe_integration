@@ -324,6 +324,9 @@ module WebNfeFlexModels
     has_many  :documentos_importacao,
               :class_name => 'WebNfeFlexModels::DocumentoImportacao',
               :foreign_key => 'item_id'
+    has_many  :detalhes_exportacao,
+              :class_name => 'WebNfeFlexModels::DetalheExportacao',
+              :foreign_key => 'item_id'
 
     belongs_to  :cfop,
                 :class_name => 'WebNfeFlexModels::Cfop',
@@ -407,6 +410,7 @@ module WebNfeFlexModels
       end
 
       result[:documentos_importacao] = self.documentos_importacao.collect { |x| x.values }
+      result[:detalhes_exportacao] = self.detalhes_exportacao.collect { |x| x.values }
 
       [:id, :product_id, :cfop_id, :domain_id, :nota_fiscal_id, :valor_entrada,
           :detalhe, :created_at, :updated_at].each { |x| result.delete(x) }
@@ -414,6 +418,19 @@ module WebNfeFlexModels
       result
     end
   end
+
+  class DetalheExportacao < WebNfeFlexModel
+    set_table_name 'detalhes_exportacao'
+
+    def values
+      result = {}
+      %w(numero_drawback numero_re chave_nfe quantidade_exportado).each do |f|
+        result[f.to_sym] = send(f.to_sym)
+      end
+      result
+    end
+  end
+
 
   class ProductType < WebNfeFlexModel
     set_table_name 'product_types'
