@@ -114,7 +114,11 @@ module WebNfeFlexModels
       result.update(self.transporter.values) if self.transporter
 
       if self.emitente
-        result[:cnpj_emitente] = self.emitente.cnpj
+        if self.emitente.cpf.blank?
+          result[:cnpj_emitente] = self.emitente.cnpj
+        else
+          result[:cpf_emitente] = self.emitente.cpf
+        end
         result[:uf_emitente] = self.emitente.uf
         result[:regime_tributario_emitente] = self.emitente.regime_tributario
         # verifica estados que tem problema com fuso horário
