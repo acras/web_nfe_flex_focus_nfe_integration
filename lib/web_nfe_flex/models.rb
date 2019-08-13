@@ -233,6 +233,11 @@ module WebNfeFlexModels
         result[:inscricao_estadual] = (self.isento_inscricao_estadual ? 'ISENTO' : self.inscricao_estadual)
       end
 
+      # produtor rural pode ter IE
+      if !cpf.blank? && !self.inscricao_estadual.blank?
+        result[:inscricao_estadual] = self.inscricao_estadual
+      end
+
       result_temp = result
       result = {}
       result_temp.each do |attribute, value|
