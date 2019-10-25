@@ -2,6 +2,7 @@
 require 'ostruct'
 require 'yaml'
 require 'erb'
+require 'net/http'
 
 module NFe
   module Integration
@@ -211,6 +212,7 @@ module NFe
         emp = nota_fiscal.documento_original.empresa
         obj = WebNfeFlexModels::AcrasNfeImport.create(:reference => reference,
                                                 :cnpj_emitente => emp.cnpj,
+                                                :cpf_emitente => emp.cpf,
                                                 :uf_emitente => emp.uf,
                                                 :chave_nfe => nota_fiscal.chave,
                                                 :status => status,
@@ -227,6 +229,7 @@ module NFe
         emp = carta_correcao.nota_fiscal.documento_original.empresa
         obj = WebNfeFlexModels::AcrasNfeImport.create(:reference => reference,
                                                 :cnpj_emitente => emp.cnpj,
+                                                :cpf_emitente => emp.cpf,
                                                 :uf_emitente => emp.uf,
                                                 :chave_nfe => carta_correcao.nota_fiscal.chave,
                                                 :numero_sequencial_evento => carta_correcao.numero_sequencial_evento,
