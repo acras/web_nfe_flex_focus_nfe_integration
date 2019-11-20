@@ -629,6 +629,9 @@ module WebNfeFlexModels
         result[:cnpj_nf_produtor] = self.cnpj
         result[:cpf_nf_produtor] = self.cpf
         result[:inscricao_estadual_nf_produtor] = self.inscricao_estadual
+        if self.isento_inscricao_estadual
+          result[:inscricao_estadual_nf_produtor] = 'ISENTO'
+        end
         result[:modelo_nf_produtor] = self.modelo
         result[:serie_nf_produtor] = self.serie
         result[:numero_nf_produtor] = self.numero
