@@ -45,7 +45,7 @@ module NFe
 
         if nf
           autorizada = source_obj.codigo_status_efetivo == '100'
-          denegada = source_obj.codigo_status_efetivo.to_i >= 300 && source_obj.codigo_status_efetivo.to_i < 310
+          denegada = source_obj.codigo_status_efetivo.to_i >= 300 && source_obj.codigo_status_efetivo.to_i <= 303
 
           if autorizada || denegada
             status = autorizada ? 'autorizada' : 'denegada'
